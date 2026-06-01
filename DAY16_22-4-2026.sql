@@ -1,0 +1,316 @@
+SELECT * FROM booking_table;
+SELECT * FROM user_table;
+select * FROM customer_orders;
+
+/*Q1.Write a SQL query to find, for each user segment:
+Total number of users
+Number of users who booked at least one Flight in April 2022
+*/
+select u.segment, 
+      count(distinct u.user_id) as no_of_users,
+       count(distinct case when b.line_of_business='Flight' and b.Booking_date between '2022-04-01' and '2022-04-30' then b.user_id end) as User_who_booked_flight_in_apr2022
+from user_table u
+left join booking_table b on u.User_id=b.User_id
+group by u.segment;
+
+
+
+# Q2.Write a SQL query to find all users whose first booking was a Hotel booking.
+select * from (
+select
+*,
+rank() over(partition by user_id order by booking_date) as rn
+from booking_table) a
+where rn=1 and Line_of_business='Hotel';
+
+
+
+WITH Ranked_users AS
+            (select *,
+               rank() over(partition by user_id order by booking_date) as rn
+            from booking_table)
+            
+SELECT * FROM Ranked_users
+WHERE rn=1 and Line_of_business='Hotel';
+
+
+/* Q3.Write a SQL query to find, for each user:
+
+Their first booking date
+Their last booking date
+The number of days between their first and last booking. */
+use case_study;
+
+SELECT 
+    user_id,
+    MIN(booking_date) AS first_booking_date,
+    MAX(booking_date) AS last_booking_date,
+    DATEDIFF(MAX(booking_date), MIN(booking_date)) AS NO_OF_DAYS
+FROM Booking_TABLE
+GROUP BY user_id;
+
+
+/* Q4.Write a SQL query to calculate, for each user segment, the total number of:
+
+Flight bookings
+Hotel bookings
+made in the year 2022.
+*/
+SELECT 
+    segment,
+    SUM(CASE WHEN Line_of_business = 'Flight' THEN 1 ELSE 0 END) AS flight_bookings,
+    SUM(CASE WHEN Line_of_business = 'Hotel' THEN 1 ELSE 0 END) AS hotel_bookings
+FROM booking_table b
+INNER JOIN user_table u 
+    ON b.user_id = u.user_id
+WHERE YEAR(booking_date) = 2022
+GROUP BY segment;
+
+
+
+
+
+#SCENARIO3
+
+CREATE TABLE orders (
+    Order_id VARCHAR(20),
+    Customer_code VARCHAR(20),
+    Placed_at DATETIME,
+    Restaurant_id VARCHAR(10),
+    Cuisine VARCHAR(20),
+    Order_status VARCHAR(20),
+    Promo_code_Name VARCHAR(20)
+);
+
+-- Insert data with multiple restaurants per cuisine
+INSERT INTO orders VALUES ('OF1900191801','UFDDN1991918XUY1','2025-01-01 15:30:20','KMKMH6787','Lebanese','Delivered','Tasty50');
+INSERT INTO orders VALUES ('OF1900191802','UFDDN1991918XUY1','2025-01-02 12:15:45','LEBANESE2','Lebanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191803','UFDDN1991918XUY1','2025-01-10 18:45:30','PIZZA123','Italian','Cancelled','HUNGRY20');
+INSERT INTO orders VALUES ('OF1900191804','UFDDN1991918XUY1','2025-01-15 19:20:15','ITALIAN2','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191805','UFDDN1991918XUY1','2025-01-20 11:30:00','BURGER99','American','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191806','ABC1234567890XYZ','2025-01-01 08:45:00','AMERICAN2','American','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191807','ABC1234567890XYZ','2025-01-05 13:20:00','TACO789','Mexican','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191808','DEF9876543210XYZ','2025-01-02 09:15:00','MEXICAN2','Mexican','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191809','GHI5678901234XYZ','2025-01-03 14:30:00','SUSHI456','Japanese','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191810','JKL3456789012XYZ','2025-01-04 12:00:00','JAPANESE2','Japanese','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191811','MNO7890123456XYZ','2025-01-05 19:45:00','KMKMH6787','Lebanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191812','PQR1234567890ABC','2025-01-06 11:30:00','LEBANESE2','Lebanese','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191813','STU9876543210ABC','2025-01-07 13:15:00','PIZZA123','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191814','VWX5678901234ABC','2025-01-08 18:00:00','ITALIAN2','Italian','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191815','YZA3456789012ABC','2025-01-09 12:45:00','BURGER99','American','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191816','BCD7890123456ABC','2025-01-10 20:15:00','AMERICAN2','American','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191817','EFG1234567890DEF','2025-01-11 09:30:00','TACO789','Mexican','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191818','HIJ9876543210DEF','2025-01-12 14:45:00','MEXICAN2','Mexican','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191819','KLM5678901234DEF','2025-01-13 17:30:00','SUSHI456','Japanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191820','NOP3456789012DEF','2025-01-14 12:15:00','JAPANESE2','Japanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191821','QRS7890123456DEF','2025-01-15 19:00:00','KMKMH6787','Lebanese','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191822','TUV1234567890GHI','2025-01-16 10:45:00','LEBANESE2','Lebanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191823','WXY9876543210GHI','2025-01-17 15:30:00','PIZZA123','Italian','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191824','ZAB5678901234GHI','2025-01-18 18:15:00','ITALIAN2','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191825','CDE3456789012GHI','2025-01-19 11:00:00','BURGER99','American','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191826','FGH7890123456GHI','2025-01-20 20:45:00','AMERICAN2','American','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191827','IJK1234567890JKL','2025-01-21 09:15:00','TACO789','Mexican','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191828','LMN9876543210JKL','2025-01-22 14:30:00','MEXICAN2','Mexican','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191829','OPQ5678901234JKL','2025-01-23 17:45:00','SUSHI456','Japanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191830','RST3456789012JKL','2025-01-24 12:30:00','JAPANESE2','Japanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191831','UVW7890123456JKL','2025-01-25 19:15:00','KMKMH6787','Lebanese','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191832','XYZ1234567890MNO','2025-01-26 10:00:00','LEBANESE2','Lebanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191833','ABC9876543210MNO','2025-01-27 15:15:00','PIZZA123','Italian','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191834','DEF5678901234MNO','2025-01-28 18:30:00','ITALIAN2','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191835','GHI3456789012MNO','2025-01-29 11:45:00','BURGER99','American','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191836','JKL7890123456MNO','2025-01-30 20:00:00','AMERICAN2','American','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191837','MNO1234567890PQR','2025-01-31 09:45:00','TACO789','Mexican','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191838','PQR9876543210PQR','2025-01-31 14:00:00','MEXICAN2','Mexican','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191839','STU5678901234PQR','2025-01-31 17:15:00','SUSHI456','Japanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191840','VWX3456789012PQR','2025-01-31 12:00:00','JAPANESE2','Japanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191841','JAN_ONLY_ORDER1','2025-01-15 13:30:00','KMKMH6787','Lebanese','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191842','JAN_ONLY_ORDER2','2025-01-20 18:45:00','LEBANESE2','Lebanese','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191843','NO_ORDER_LAST7_1','2025-02-01 12:15:00','PIZZA123','Italian','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191844','NO_ORDER_LAST7_2','2025-02-05 19:30:00','ITALIAN2','Italian','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191845','THIRD_ORDER_CUST1','2025-01-05 11:45:00','BURGER99','American','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191846','THIRD_ORDER_CUST1','2025-01-10 14:15:00','AMERICAN2','American','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191847','THIRD_ORDER_CUST1','2025-01-15 17:45:00','BURGER99','American','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191848','THIRD_ORDER_CUST2','2025-01-10 10:30:00','TACO789','Mexican','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191849','THIRD_ORDER_CUST2','2025-01-15 13:45:00','MEXICAN2','Mexican','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191850','THIRD_ORDER_CUST2','2025-01-20 16:30:00','TACO789','Mexican','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191851','MULTI_CUISINE_CUST','2025-01-05 12:00:00','KMKMH6787','Lebanese','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191852','MULTI_CUISINE_CUST','2025-01-10 15:30:00','LEBANESE2','Lebanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191853','MULTI_CUISINE_CUST','2025-01-15 18:45:00','PIZZA123','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191854','MULTI_CUISINE_CUST','2025-01-20 11:15:00','ITALIAN2','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191855','MULTI_CUISINE_CUST','2025-01-25 14:45:00','BURGER99','American','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191856','SINGLE_ORDER_JAN','2025-01-10 19:00:00','AMERICAN2','American','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191857','NO_ORDER_RECENT','2025-02-10 12:30:00','TACO789','Mexican','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191858','NO_ORDER_RECENT','2025-02-15 18:00:00','MEXICAN2','Mexican','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191859','PROMO_FIRST_ONLY','2025-02-01 11:45:00','SUSHI456','Japanese','Delivered','WELCOME50');
+INSERT INTO orders VALUES ('OF1900191860','PROMO_FIRST_ONLY','2025-02-05 14:15:00','JAPANESE2','Japanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191861','PROMO_FIRST_ONLY','2025-02-10 17:30:00','SUSHI456','Japanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191862','LAST_ORDER_7DAYS','2025-03-20 10:00:00','KMKMH6787','Lebanese','Delivered','FIRSTORDER');
+INSERT INTO orders VALUES ('OF1900191863','LAST_ORDER_7DAYS','2025-03-25 13:15:00','LEBANESE2','Lebanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191864','LAST_ORDER_7DAYS','2025-03-31 16:30:00','KMKMH6787','Lebanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191865','ABC9876543210MNO','2025-02-27 15:15:00','PIZZA123','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191866','CDE3456789012GHI','2025-03-27 15:15:00','PIZZA123','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191867','ABC9876543210MNO','2025-03-15 15:15:00','LEBANESE2','Lebanese','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191868','ZZZ9876543210MNO','2025-03-20 15:15:00','LEBANESE2','Lebanese','Delivered','NEWUSER');
+INSERT INTO orders VALUES ('OF1900191869','UFDDN1991918XUY1','2025-03-28 11:30:00','BURGER99','American','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191870','MULTI_CUISINE_CUST','2025-03-31 14:45:00','PIZZA123','Italian','Delivered',null);
+INSERT INTO orders VALUES ('OF1900191871','DEF9876543210XYZ','2025-03-02 09:15:00','KMKMH6787','Lebanese','Delivered','TASTY50');
+INSERT INTO orders VALUES ('OF1900191872','UVW7890123456JKL','2025-02-25 19:15:00','KMKMH6787','Lebanese','Delivered','TASTY25');
+INSERT INTO orders VALUES ('OF1900191873','UVW7890123456JKL','2025-03-25 19:15:00','PIZZA123','Italian','Delivered','TASTY50');
+
+select *from orders;
+
+
+
+ 
+#1.Find the top 3 restaurants within each cuisine based on the number of orders they have received.
+
+#Q1-method1
+with cte as (
+select Cuisine , Restaurant_id , COUNT(*) as no_of_orders
+from orders
+group by Cuisine , Restaurant_id)
+select * from (
+select *
+,ROW_NUMBER() over(partition by Cuisine order by no_of_orders desc) as rn
+from cte) a
+where rn<=3;
+
+#Method2
+WITH order_counts AS (
+    SELECT 
+        Cuisine, 
+        Restaurant_id, 
+        COUNT(*) AS no_of_orders
+    FROM orders
+    GROUP BY Cuisine, Restaurant_id
+),
+ranked_restaurants AS (
+    SELECT 
+        Cuisine,
+        Restaurant_id,
+        no_of_orders,
+        ROW_NUMBER() OVER (
+            PARTITION BY Cuisine 
+            ORDER BY no_of_orders DESC
+        ) AS rn
+    FROM order_counts
+)
+SELECT 
+    Cuisine,
+    Restaurant_id,
+    no_of_orders,
+    rn
+FROM ranked_restaurants
+WHERE rn <= 3;
+
+
+
+# 2.Find the number of new customers acquired each day.[IMP]
+
+#Q2
+with cte as (
+select Customer_code , cast(MIN(placed_at) AS date) as first_order_date
+from orders
+group by Customer_code)
+
+select first_order_date, COUNT(*) as no_of_new_customers
+from cte
+group by first_order_date
+order by first_order_date;
+
+
+ /* 3.Identify customers who:
+Placed orders only in January 2025 (i.e., they have no orders in any other month/year)
+Placed exactly one order during that period.
+*/
+
+#Q3method1
+select Customer_code , COUNT(*) as no_of_orders
+from orders
+where MONTH(placed_at)=1 and YEAR(placed_at)=2025
+and Customer_code not in (select distinct Customer_code
+from orders
+where not (MONTH(placed_at)=1 and YEAR(placed_at)=2025)
+)
+group by Customer_code
+having COUNT(*)=1;
+
+#method2
+WITH jan_orders AS (
+    SELECT *
+    FROM orders
+    WHERE MONTH(placed_at) = 1 
+      AND YEAR(placed_at) = 2025
+),
+other_orders AS (
+    SELECT DISTINCT Customer_code
+    FROM orders
+    WHERE NOT (MONTH(placed_at) = 1 AND YEAR(placed_at) = 2025)
+)
+SELECT 
+    j.Customer_code,
+    COUNT(*) AS no_of_orders
+FROM jan_orders j
+LEFT JOIN other_orders o
+    ON j.Customer_code = o.Customer_code
+WHERE o.Customer_code IS NULL
+GROUP BY j.Customer_code
+HAVING COUNT(*) = 1;
+
+/* 4.Identify customers who satisfy all of the following conditions:
+
+Their first order was placed more than 1 month ago
+Their most recent (latest) order was placed more than 7 days ago (i.e., they are currently inactive)
+They used a promo code in their first order
+*/ 
+
+#Q4
+WITH cte AS (
+    SELECT 
+        Customer_code, 
+        MIN(placed_at) AS first_order_date,
+        MAX(placed_at) AS latest_order_date
+    FROM orders
+    GROUP BY Customer_code
+)
+SELECT 
+    cte.*, 
+    o.Promo_code_Name AS first_order_promo
+FROM cte
+INNER JOIN orders o 
+    ON cte.Customer_code = o.Customer_code 
+    AND cte.first_order_date = o.placed_at
+WHERE latest_order_date < DATE_SUB(NOW(), INTERVAL 7 DAY)
+  AND first_order_date < DATE_SUB(NOW(), INTERVAL 1 MONTH)
+  AND o.Promo_code_Name IS NOT NULL;
+  
+  
+  
+/* 5.Identify customers who:
+
+Have placed more than one order
+Have used a promo code in every single order
+*/
+
+  #Q5
+select Customer_code, COUNT(*) as no_of_orders, COUNT(Promo_code_Name) as promo_orders
+from orders
+group by Customer_code
+having COUNT(*)>1 and COUNT(*)=COUNT(Promo_code_Name);
+
+
+
+/* 6.Calculate the percentage of customers (out of all customers who placed orders in January) whose:
+first order in January did not use a promo code
+*/
+
+#Q6
+with cte as (
+select *
+, ROW_NUMBER() over(partition by customer_code order by placed_at) as rn
+from orders
+where MONTH(placed_at)=1
+)
+select COUNT(case when rn=1 and Promo_code_Name is null then customer_code end)*100.0/COUNT(distinct Customer_code)
+from cte;
+
