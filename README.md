@@ -259,7 +259,7 @@ Aspiring Data Analyst | SQL Enthusiast | CSE Student
 # 📌 GitHub Repository
 
 🔗 Repository Link:  
-https://github.com/jfvksvns
+https://github.com/jfvksvns/SQL
 
 ---
 
